@@ -43,4 +43,6 @@ CREATE TABLE users (
 
 DATABASE_URL="postgres://postgres:postgres@localhost:5432/postgres?options=-csearch_path=sqlx" sqlx migrate run
 
+DATABASE_URL="postgres://postgres:postgres@localhost:5432/postgres?options=-csearch_path=sqlx" cargo sqlx prepare
+
 APP_ENV=development cargo run

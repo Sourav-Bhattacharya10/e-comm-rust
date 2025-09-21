@@ -69,7 +69,7 @@ impl Read<User, Uuid> for UserRepo {
             "#,
             id
         )
-        .fetch_optional(self.pool)
+        .fetch_optional(&self.pool)
         .await?;
 
         Ok(rec)
@@ -83,7 +83,7 @@ impl Read<User, Uuid> for UserRepo {
             FROM users
             "#
         )
-        .fetch_all(self.pool)
+        .fetch_all(&self.pool)
         .await?;
 
         Ok(recs)

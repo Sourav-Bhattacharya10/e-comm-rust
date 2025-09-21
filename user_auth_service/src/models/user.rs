@@ -10,6 +10,6 @@ pub struct User {
     pub password_hash: String,
     pub role: String,
     pub is_active: bool,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
 }

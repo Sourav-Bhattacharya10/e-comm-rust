@@ -8,7 +8,7 @@ use tokio;
 
 use config_utility::load_config::load_config;
 use repos::{repository_traits::Read, user_repo::UserRepo};
-// use seeds::user_seed::seeding_users_data;
+use seeds::user_seed::seeding_users_data;
 
 #[tokio::main]
 async fn main() {
@@ -25,7 +25,7 @@ async fn main() {
 
     let pg_pool = PgPool::connect(db_url.as_str()).await.unwrap();
 
-    // seeding_users_data(&pg_pool).await.unwrap();
+    seeding_users_data(&pg_pool).await.unwrap();
 
     let user_repo = UserRepo { pool: pg_pool };
     let users = user_repo.read_all().await.unwrap();

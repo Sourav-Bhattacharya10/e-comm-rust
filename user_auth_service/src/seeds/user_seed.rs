@@ -19,35 +19,52 @@ fn hash_password(password: &str) -> Result<String, ArgonError> {
     Ok(password_hash)
 }
 
+async fn is_seeding_done(pg_pool: &PgPool) -> Result<bool, Box<dyn std::error::Error>> {
+    let existing = sqlx::query_scalar!(
+        r#"
+        SELECT EXISTS (
+            SELECT 1 FROM users WHERE email = 'alfa_doe@gmail.com'
+        )
+        "#
+    )
+    .fetch_one(pg_pool)
+    .await?;
+
+    Ok(existing.expect("Something went wrong"))
+}
+
 pub async fn seeding_users_data(pg_pool: &PgPool) -> Result<(), Box<dyn std::error::Error>> {
-    // Sample Users
-    let users: Vec<User> = vec![
-        User {
-            id: Uuid::new_v4(),
-            username: "alfa_doe".to_string(),
-            email: "alfa_doe@gmail.com".to_string(),
-            password_hash: "hashed_password_1".to_string(),
-            role: "admin".to_string(),
-            is_active: true,
-            created_at: chrono::Utc::now(),
-            updated_at: chrono::Utc::now(),
-        },
-        User {
-            id: Uuid::new_v4(),
-            username: "beta_smith".to_string(),
-            email: "beta_smith@gmail.com".to_string(),
-            password_hash: "hashed_password_2".to_string(),
-            role: "user".to_string(),
-            is_active: true,
-            created_at: chrono::Utc::now(),
-            updated_at: chrono::Utc::now(),
-        },
-    ];
+    let existing = is_seeding_done(pg_pool).await?;
 
-    for user in users {
-        let password_hash = hash_password("123").unwrap();
+    if !existing {
+        // Sample Users
+        let users: Vec<User> = vec![
+            User {
+                id: Uuid::new_v4(),
+                username: "alfa_doe".to_string(),
+                email: "alfa_doe@gmail.com".to_string(),
+                password_hash: "hashed_password_1".to_string(),
+                role: "admin".to_string(),
+                is_active: true,
+                created_at: Some(chrono::Utc::now()),
+                updated_at: Some(chrono::Utc::now()),
+            },
+            User {
+                id: Uuid::new_v4(),
+                username: "beta_smith".to_string(),
+                email: "beta_smith@gmail.com".to_string(),
+                password_hash: "hashed_password_2".to_string(),
+                role: "user".to_string(),
+                is_active: true,
+                created_at: Some(chrono::Utc::now()),
+                updated_at: Some(chrono::Utc::now()),
+            },
+        ];
 
-        sqlx::query!(
+        for user in users {
+            let password_hash = hash_password("123").unwrap();
+
+            sqlx::query!(
                 r#"
                 INSERT INTO users (id, email, username, password_hash, role, is_active, created_at, updated_at)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -62,10 +79,13 @@ pub async fn seeding_users_data(pg_pool: &PgPool) -> Result<(), Box<dyn std::err
                 user.created_at,
                 user.updated_at
             )
-            .execute(&pg_pool)
+            .execute(pg_pool)
             .await?;
-    }
+        }
 
-    println!("✅ Seeded users successfully");
+        println!("✅ Seeded users successfully");
+    } else {
+        println!("User Seeding already done!");
+    }
     Ok(())
 }
