@@ -1,7 +1,11 @@
-use axum::{routing::get, Router};
+use std::sync::Arc;
 
-use crate::controllers::user_controller::UserController;
+use axum::{Router, routing::get};
 
-pub fn user_routes() -> Router {
-    Router::new().route("/", get(UserController::get_all_users))
+use crate::{controllers::user_controller::UserController, models::AppState};
+
+pub fn user_routes() -> Router<Arc<AppState>> {
+    Router::new()
+        .route("/", get(UserController::get_all_users))
+        .route("/{id}", get(UserController::get_user_by_id))
 }

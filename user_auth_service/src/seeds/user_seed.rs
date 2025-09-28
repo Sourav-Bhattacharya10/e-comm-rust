@@ -84,8 +84,7 @@ pub async fn seeding_users_data(pg_pool: &PgPool) -> Result<(), Box<dyn std::err
         }
 
         println!("✅ Seeded users successfully");
-    } else {
-        println!("User Seeding already done!");
     }
+
     Ok(())
 }

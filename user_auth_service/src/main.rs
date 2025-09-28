@@ -5,7 +5,7 @@ mod repos;
 mod routes;
 mod seeds;
 
-use axum::{Extension, Router, routing::get};
+use axum::{Router, extract::State, routing::get};
 use sqlx::PgPool;
 use std::sync::Arc;
 use tokio::net::TcpListener;
@@ -32,6 +32,7 @@ async fn main() {
 
     let pg_pool = PgPool::connect(db_url.as_str()).await.unwrap();
 
+    println!("Server started on port 8080");
     seeding_users_data(&pg_pool).await.unwrap();
 
     let shared_state = Arc::new(AppState {
@@ -41,15 +42,14 @@ async fn main() {
     let app = Router::new()
         .route("/health", get(health_check))
         .nest("/users", user_routes())
-        .layer(Extension(shared_state));
+        .with_state(shared_state);
 
     let listener = TcpListener::bind("0.0.0.0:8080").await.unwrap();
     axum::serve(listener, app).await.unwrap();
     tracing::info!("Server started on port 8080");
-    println!("Server started on port 8080");
 }
 
-async fn health_check(Extension(app_state): Extension<Arc<AppState>>) -> &'static str {
+async fn health_check(State(app_state): State<Arc<AppState>>) -> &'static str {
     let _conn = app_state
         .db_pool
         .try_acquire()

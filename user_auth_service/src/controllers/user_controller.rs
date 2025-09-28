@@ -1,22 +1,26 @@
 use std::sync::Arc;
 
-use axum::{extract::Extension, Json};
+use axum::{
+    Json,
+    extract::{Path, State},
+};
+use uuid::Uuid;
 
 use crate::{
-    models::{user::User, AppState},
+    models::{AppState, user::User},
     repos::{repository_traits::Read, user_repo::UserRepo},
 };
 
 pub struct UserController;
 
 impl UserController {
-    pub fn new() -> Self {
-        UserController
-    }
+    // pub fn new() -> Self {
+    //     UserController
+    // }
 
     // Handlers
     pub async fn get_all_users(
-        Extension(app_state): Extension<Arc<AppState>>,
+        State(app_state): State<Arc<AppState>>,
     ) -> Result<Json<Vec<User>>, ()> {
         let user_repo = UserRepo {
             pool: app_state.db_pool.clone(),
@@ -28,8 +32,20 @@ impl UserController {
         }
     }
 
-    async fn get_user_by_id() -> &'static str {
-        "User by ID"
+    pub async fn get_user_by_id(
+        Path(id): Path<Uuid>,
+        State(app_state): State<Arc<AppState>>,
+    ) -> Result<Json<User>, ()> {
+        let user_repo = UserRepo {
+            pool: app_state.db_pool.clone(),
+        };
+
+        let found_user = user_repo.read(id).await;
+
+        match found_user {
+            Ok(user) => Ok(Json(user.unwrap())),
+            Err(_) => Err(()),
+        }
     }
 
     async fn create_user() -> &'static str {
