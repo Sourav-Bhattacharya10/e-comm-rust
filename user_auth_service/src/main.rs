@@ -1,9 +1,11 @@
 mod config_utility;
 mod controllers;
+mod dtos;
 mod models;
 mod repos;
 mod routes;
 mod seeds;
+mod traits;
 
 use axum::{Router, extract::State, routing::get};
 use sqlx::PgPool;
@@ -13,7 +15,7 @@ use tokio::net::TcpListener;
 use config_utility::load_config::load_config;
 use seeds::user_seed::seeding_users_data;
 
-use crate::{models::AppState, routes::user_routes::user_routes};
+use crate::{models::app_state::AppState, routes::user_routes::user_routes};
 
 #[tokio::main]
 async fn main() {
