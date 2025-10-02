@@ -7,9 +7,12 @@ use axum::{
 use uuid::Uuid;
 
 use crate::{
-    dtos::user_dto::UserDto,
+    dtos::{create_user_dto::CreateUserDto, user_dto::UserDto},
     models::{app_state::AppState, user::User},
-    repos::{repository_traits::Read, user_repo::UserRepo},
+    repos::{
+        repository_traits::{Create, Read},
+        user_repo::UserRepo,
+    },
     traits::into_dto::IntoDto,
 };
 
@@ -56,7 +59,33 @@ impl UserController {
         }
     }
 
-    async fn create_user() -> &'static str {
-        "Create user"
+    pub async fn create_user(
+        State(app_state): State<Arc<AppState>>,
+        Json(create_user_dto): Json<CreateUserDto>,
+    ) -> Result<Json<UserDto>, ()> {
+        let user_repo = UserRepo {
+            pool: app_state.db_pool.clone(),
+        };
+
+        let new_user = User {
+            id: Uuid::new_v4(),
+            username: create_user_dto.username,
+            email: create_user_dto.email,
+            password_hash: create_user_dto.password_hash,
+            role: create_user_dto.role,
+            is_active: true,
+            created_at: Some(chrono::Utc::now()),
+            updated_at: Some(chrono::Utc::now()),
+        };
+
+        let created_user = user_repo.create(new_user).await;
+
+        match created_user {
+            Ok(user) => {
+                let user_dto = user.into_dto();
+                Ok(Json(user_dto))
+            }
+            Err(_) => Err(()),
+        }
     }
 }

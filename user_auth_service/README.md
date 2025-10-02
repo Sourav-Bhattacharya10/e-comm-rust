@@ -40,6 +40,7 @@ CREATE TABLE users (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+123
 
 DATABASE_URL="postgres://postgres:postgres@localhost:5432/postgres?options=-csearch_path=sqlx" sqlx migrate run
 

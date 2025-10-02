@@ -1,23 +1,8 @@
-use argon2::{
-    Argon2,
-    password_hash::{Error as ArgonError, PasswordHasher, SaltString, rand_core::OsRng},
-};
 use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::models::user::User;
-
-fn hash_password(password: &str) -> Result<String, ArgonError> {
-    let salt = SaltString::generate(&mut OsRng);
-
-    let argon2 = Argon2::default();
-
-    let password_hash = argon2
-        .hash_password(password.as_bytes(), &salt)?
-        .to_string();
-
-    Ok(password_hash)
-}
+use crate::utility::password_hasher::hash_password;
 
 async fn is_seeding_done(pg_pool: &PgPool) -> Result<bool, Box<dyn std::error::Error>> {
     let existing = sqlx::query_scalar!(
