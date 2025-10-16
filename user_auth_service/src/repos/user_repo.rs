@@ -3,7 +3,7 @@ use sqlx::{self, PgPool};
 use std::error::Error;
 use uuid::Uuid;
 
-use super::repository_traits::{Create, Read};
+use super::repository_traits::{Create, Read, Update};
 use crate::models::user::User;
 
 pub struct UserRepo {
@@ -41,36 +41,6 @@ impl Read<User, Uuid> for UserRepo {
 
         Ok(recs)
     }
-
-    // async fn update(
-    //     &self,
-    //     id: Self::Id,
-    //     entity: Self::Entity,
-    // ) -> Result<Self::Entity, Box<dyn std::error::Error>> {
-    //     let rec = sqlx::query_as!(
-    //         User,
-    //         r#"
-    //         UPDATE users
-    //         SET username = $2,
-    //             email = $3,
-    //             password_hash = $4,
-    //             role = $5,
-    //             is_active = $6,
-    //             updated_at = $7
-    //         WHERE id = $1
-    //         RETURNING id, username, email, password_hash, role, is_active, created_at, updated_at
-    //         "#,
-    //         id,
-    //         entity.username,
-    //         entity.email,
-    //         entity.password_hash,
-    //         entity.role,
-    //         entity.is_active,
-    //         entity.updated_at
-    //     )
-    //     .fetch_one(self.pool)
-    //     .await?;
-    // }
 }
 
 #[async_trait]
@@ -94,6 +64,35 @@ impl Create<User> for UserRepo {
                 )
                 .fetch_one(&self.pool)
                 .await?;
+
+        Ok(rec)
+    }
+}
+
+#[async_trait]
+impl Update<User, Uuid> for UserRepo {
+    async fn update(&self, id: Uuid, entity: User) -> Result<User, Box<dyn Error>> {
+        let rec = sqlx::query_as!(
+            User,
+            r#"
+            UPDATE users
+                SET username = $2,
+                    email = $3,
+                    role = $4,
+                    is_active = $5,
+                    updated_at = $6
+            WHERE id = $1
+            RETURNING id, username, email, password_hash, role, is_active, created_at, updated_at
+            "#,
+            id,
+            entity.username,
+            entity.email,
+            entity.role,
+            entity.is_active,
+            entity.updated_at
+        )
+        .fetch_one(&self.pool)
+        .await?;
 
         Ok(rec)
     }

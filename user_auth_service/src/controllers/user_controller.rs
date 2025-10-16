@@ -1,16 +1,20 @@
 use std::sync::Arc;
 
 use axum::{
-    Json,
+    Json, debug_handler,
     extract::{Path, State},
 };
 use uuid::Uuid;
 
 use crate::{
-    dtos::{create_user_dto::CreateUserDto, user_dto::UserDto},
-    models::{app_state::AppState, user::User},
+    dtos::{create_user_dto::CreateUserDto, update_user_dto::UpdateUserDto, user_dto::UserDto},
+    models::{
+        app_error::{AppError, CustomResult},
+        app_state::AppState,
+        user::User,
+    },
     repos::{
-        repository_traits::{Create, Read},
+        repository_traits::{Create, Delete, Read, Update},
         user_repo::UserRepo,
     },
     traits::into_dto::IntoDto,
@@ -19,14 +23,9 @@ use crate::{
 pub struct UserController;
 
 impl UserController {
-    // pub fn new() -> Self {
-    //     UserController
-    // }
-
-    // Handlers
     pub async fn get_all_users(
         State(app_state): State<Arc<AppState>>,
-    ) -> Result<Json<Vec<UserDto>>, ()> {
+    ) -> CustomResult<Json<Vec<UserDto>>> {
         let user_repo = UserRepo {
             pool: app_state.db_pool.clone(),
         };
@@ -36,14 +35,14 @@ impl UserController {
                 let users_dto = users.into_iter().map(|u| u.into_dto()).collect();
                 Ok(Json(users_dto))
             }
-            Err(_) => Err(()),
+            Err(_) => Err(AppError::NO_USERS_FOUND),
         }
     }
 
     pub async fn get_user_by_id(
-        Path(id): Path<Uuid>,
         State(app_state): State<Arc<AppState>>,
-    ) -> Result<Json<UserDto>, ()> {
+        Path(id): Path<Uuid>,
+    ) -> CustomResult<Json<UserDto>> {
         let user_repo = UserRepo {
             pool: app_state.db_pool.clone(),
         };
@@ -51,18 +50,19 @@ impl UserController {
         let found_user = user_repo.read(id).await;
 
         match found_user {
-            Ok(user) => {
-                let user_dto = user.unwrap().into_dto();
+            Ok(Some(user)) => {
+                let user_dto = user.into_dto();
                 Ok(Json(user_dto))
             }
-            Err(_) => Err(()),
+            Ok(None) => return Err(AppError::USER_NOT_FOUND),
+            Err(_) => return Err(AppError::DATABASE_CONNECTION_FAILURE),
         }
     }
 
     pub async fn create_user(
         State(app_state): State<Arc<AppState>>,
         Json(create_user_dto): Json<CreateUserDto>,
-    ) -> Result<Json<UserDto>, ()> {
+    ) -> CustomResult<Json<UserDto>> {
         let user_repo = UserRepo {
             pool: app_state.db_pool.clone(),
         };
@@ -85,7 +85,44 @@ impl UserController {
                 let user_dto = user.into_dto();
                 Ok(Json(user_dto))
             }
-            Err(_) => Err(()),
+            Err(_) => Err(AppError::USER_COULD_NOT_BE_CREATED),
+        }
+    }
+
+    pub async fn update_user(
+        State(app_state): State<Arc<AppState>>,
+        Path(id): Path<Uuid>,
+        Json(update_user_dto): Json<UpdateUserDto>,
+    ) -> CustomResult<Json<UserDto>> {
+        let user_repo = UserRepo {
+            pool: app_state.db_pool.clone(),
+        };
+
+        let existing_user = match user_repo.read(id).await {
+            Ok(Some(user)) => user,
+            Ok(None) => return Err(AppError::USER_NOT_FOUND),
+            Err(_) => return Err(AppError::DATABASE_CONNECTION_FAILURE),
+        };
+
+        let update_user = User {
+            id: existing_user.id,
+            username: update_user_dto.username,
+            email: update_user_dto.email,
+            password_hash: existing_user.password_hash,
+            role: update_user_dto.role,
+            is_active: update_user_dto.is_active,
+            created_at: existing_user.created_at,
+            updated_at: Some(chrono::Utc::now()),
+        };
+
+        let updated_user = user_repo.update(existing_user.id, update_user).await;
+
+        match updated_user {
+            Ok(user) => {
+                let user_dto = user.into_dto();
+                Ok(Json(user_dto))
+            }
+            Err(_) => Err(AppError::USER_COULD_NOT_BE_UPDATED),
         }
     }
 }

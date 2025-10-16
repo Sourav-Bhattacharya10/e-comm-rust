@@ -1,0 +1,30 @@
+// Project-local debug tasks
+//
+// For more documentation on how to configure debug tasks,
+// see: https://zed.dev/docs/debugger
+[
+  {
+    "adapter": "CodeLLDB",
+    "label": "APP_ENV=development cargo run -p user_auth_service",
+    "build": {
+      "label": "cargo build -p user_auth_service",
+      "command": "cargo",
+      "args": ["build", "--package", "user_auth_service"],
+      "env": {
+        "APP_ENV": "development",
+        "RUSTC_TOOLCHAIN": "/home/souravbhattacharya/.rustup/toolchains/stable-x86_64-unknown-linux-gnu"
+      },
+      "cwd": "/home/souravbhattacharya/Documents/Zed_Projects/Rust_Projects/e-comm-rust/user_auth_service",
+      "use_new_terminal": false,
+      "allow_concurrent_runs": false,
+      "reveal": "always",
+      "reveal_target": "dock",
+      "hide": "never",
+      "tags": [],
+      "shell": "system",
+      "show_summary": false,
+      "show_command": false
+    },
+    "sourceLanguages": ["rust"]
+  }
+]
