@@ -12,6 +12,9 @@ pub fn user_routes() -> Router<Arc<AppState>> {
         )
         .route(
             "/{id}",
-            get(UserController::get_user_by_id).put(UserController::update_user),
+            get(UserController::get_user_by_id)
+                .put(UserController::update_user)
+                .delete(UserController::delete_user)
+                .patch(UserController::update_user_is_active),
         )
 }

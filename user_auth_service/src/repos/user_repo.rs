@@ -3,7 +3,7 @@ use sqlx::{self, PgPool};
 use std::error::Error;
 use uuid::Uuid;
 
-use super::repository_traits::{Create, Read, Update};
+use super::repository_traits::{Create, Delete, Read, Update};
 use crate::models::user::User;
 
 pub struct UserRepo {
@@ -90,6 +90,45 @@ impl Update<User, Uuid> for UserRepo {
             entity.role,
             entity.is_active,
             entity.updated_at
+        )
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(rec)
+    }
+
+    async fn update_is_active(&self, id: Uuid, is_active: bool) -> Result<User, Box<dyn Error>> {
+        let rec = sqlx::query_as!(
+            User,
+            r#"
+            UPDATE users
+                SET is_active = $2,
+                    updated_at = $3
+            WHERE id = $1
+            RETURNING id, username, email, password_hash, role, is_active, created_at, updated_at
+            "#,
+            id,
+            is_active,
+            Some(chrono::Utc::now())
+        )
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(rec)
+    }
+}
+
+#[async_trait]
+impl Delete<User, Uuid> for UserRepo {
+    async fn delete(&self, id: Uuid) -> Result<User, Box<dyn Error>> {
+        let rec = sqlx::query_as!(
+            User,
+            r#"
+            DELETE FROM users
+            WHERE id = $1
+            RETURNING id, username, email, password_hash, role, is_active, created_at, updated_at
+            "#,
+            id,
         )
         .fetch_one(&self.pool)
         .await?;

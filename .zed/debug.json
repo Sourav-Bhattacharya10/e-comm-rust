@@ -4,8 +4,10 @@
 // see: https://zed.dev/docs/debugger
 [
   {
+    "request": "launch",
     "adapter": "CodeLLDB",
     "label": "APP_ENV=development cargo run -p user_auth_service",
+    "program": "$ZED_WORKTREE_ROOT/target/debug/user_auth_service",
     "build": {
       "label": "cargo build -p user_auth_service",
       "command": "cargo",
@@ -20,7 +22,6 @@
       "reveal": "always",
       "reveal_target": "dock",
       "hide": "never",
-      "tags": [],
       "shell": "system",
       "show_summary": false,
       "show_command": false

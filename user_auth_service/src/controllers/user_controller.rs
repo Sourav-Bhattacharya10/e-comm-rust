@@ -7,7 +7,10 @@ use axum::{
 use uuid::Uuid;
 
 use crate::{
-    dtos::{create_user_dto::CreateUserDto, update_user_dto::UpdateUserDto, user_dto::UserDto},
+    dtos::{
+        create_user_dto::CreateUserDto, delete_user_dto::DeleteUserDto,
+        update_user_dto::UpdateUserDto, user_dto::UserDto, user_is_active_dto::UserIsActiveDto,
+    },
     models::{
         app_error::{AppError, CustomResult},
         app_state::AppState,
@@ -121,6 +124,59 @@ impl UserController {
             Ok(user) => {
                 let user_dto = user.into_dto();
                 Ok(Json(user_dto))
+            }
+            Err(_) => Err(AppError::USER_COULD_NOT_BE_UPDATED),
+        }
+    }
+
+    pub async fn delete_user(
+        State(app_state): State<Arc<AppState>>,
+        Path(id): Path<Uuid>,
+    ) -> CustomResult<Json<DeleteUserDto>> {
+        let user_repo = UserRepo {
+            pool: app_state.db_pool.clone(),
+        };
+
+        let _existing_user = match user_repo.read(id).await {
+            Ok(Some(user)) => user,
+            Ok(None) => return Err(AppError::USER_NOT_FOUND),
+            Err(_) => return Err(AppError::DATABASE_CONNECTION_FAILURE),
+        };
+
+        let deleted_user = user_repo.delete(id).await;
+
+        match deleted_user {
+            Ok(user) => {
+                let delete_user_dto = user.into_dto();
+                Ok(Json(delete_user_dto))
+            }
+            Err(_) => Err(AppError::USER_COULD_NOT_BE_DELETED),
+        }
+    }
+
+    pub async fn update_user_is_active(
+        State(app_state): State<Arc<AppState>>,
+        Path(id): Path<Uuid>,
+        Json(user_is_active_dto): Json<UserIsActiveDto>,
+    ) -> CustomResult<Json<UserDto>> {
+        let user_repo = UserRepo {
+            pool: app_state.db_pool.clone(),
+        };
+
+        let _existing_user = match user_repo.read(id).await {
+            Ok(Some(user)) => user,
+            Ok(None) => return Err(AppError::USER_NOT_FOUND),
+            Err(_) => return Err(AppError::DATABASE_CONNECTION_FAILURE),
+        };
+
+        let updated_user_is_active = user_repo
+            .update_is_active(id, user_is_active_dto.is_active)
+            .await;
+
+        match updated_user_is_active {
+            Ok(user) => {
+                let updated_user_is_active_dto = user.into_dto();
+                Ok(Json(updated_user_is_active_dto))
             }
             Err(_) => Err(AppError::USER_COULD_NOT_BE_UPDATED),
         }

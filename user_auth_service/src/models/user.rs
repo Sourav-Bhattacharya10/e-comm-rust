@@ -2,7 +2,10 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{dtos::user_dto::UserDto, traits::into_dto::IntoDto};
+use crate::{
+    dtos::{delete_user_dto::DeleteUserDto, user_dto::UserDto},
+    traits::into_dto::IntoDto,
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
@@ -26,6 +29,16 @@ impl IntoDto<UserDto> for User {
             is_active: self.is_active,
             created_at: self.created_at,
             updated_at: self.updated_at,
+        }
+    }
+}
+
+impl IntoDto<DeleteUserDto> for User {
+    fn into_dto(&self) -> DeleteUserDto {
+        DeleteUserDto {
+            id: self.id,
+            username: self.username.clone(),
+            email: self.email.clone(),
         }
     }
 }
