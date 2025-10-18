@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use axum::{
-    Json, debug_handler,
-    extract::{Path, State},
+    Json,
+    extract::{Path, Query, State},
 };
 use uuid::Uuid;
 
@@ -14,6 +14,8 @@ use crate::{
     models::{
         app_error::{AppError, CustomResult},
         app_state::AppState,
+        paginated_response::PaginatedResponse,
+        pagination::Pagination,
         user::User,
     },
     repos::{
@@ -28,15 +30,39 @@ pub struct UserController;
 impl UserController {
     pub async fn get_all_users(
         State(app_state): State<Arc<AppState>>,
-    ) -> CustomResult<Json<Vec<UserDto>>> {
+        Query(pagination): Query<Pagination>,
+    ) -> CustomResult<Json<PaginatedResponse<UserDto>>> {
+        let page = pagination.page.unwrap_or(1);
+        let limit = pagination.limit.unwrap_or(3);
+        let offset = (page - 1) * limit;
+        let username = pagination.username.unwrap_or(String::from(""));
+        let username_option = if username == "" { None } else { Some(username) };
+        let order_by = pagination.order_by.unwrap_or(String::from("id"));
+
         let user_repo = UserRepo {
             pool: app_state.db_pool.clone(),
         };
-        let users = user_repo.read_all().await;
+
+        let users = user_repo
+            .read_all(username_option, limit, offset, &order_by)
+            .await;
         match users {
             Ok(users) => {
+                let total_count_result = user_repo.count_total().await;
+                let total_count = match total_count_result {
+                    Ok(count) => count,
+                    Err(_) => 0,
+                };
+
                 let users_dto = users.into_iter().map(|u| u.into_dto()).collect();
-                Ok(Json(users_dto))
+
+                return Ok(Json(PaginatedResponse {
+                    data: users_dto,
+                    limit: limit,
+                    page: page,
+                    order_by: order_by,
+                    total: total_count,
+                }));
             }
             Err(_) => Err(AppError::NO_USERS_FOUND),
         }

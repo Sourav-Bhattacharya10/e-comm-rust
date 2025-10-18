@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sqlx::{self, PgPool};
+use sqlx::{self, PgPool, QueryBuilder};
 use std::error::Error;
 use uuid::Uuid;
 
@@ -12,7 +12,7 @@ pub struct UserRepo {
 
 #[async_trait]
 impl Read<User, Uuid> for UserRepo {
-    async fn read(&self, id: Uuid) -> Result<Option<User>, Box<dyn Error>> {
+    async fn read(&self, id: Uuid) -> Result<Option<User>, Box<dyn Error + Send + Sync>> {
         let rec = sqlx::query_as!(
             User,
             r#"
@@ -28,24 +28,63 @@ impl Read<User, Uuid> for UserRepo {
         Ok(rec)
     }
 
-    async fn read_all(&self) -> Result<Vec<User>, Box<dyn Error>> {
-        let recs = sqlx::query_as!(
-            User,
-            r#"
-            SELECT id, username, email, password_hash, role, is_active, created_at, updated_at
-            FROM users
-            "#
-        )
-        .fetch_all(&self.pool)
-        .await?;
+    async fn read_all(
+        &self,
+        name: Option<String>,
+        limit: u32,
+        offset: u32,
+        order_by: &str,
+    ) -> Result<Vec<User>, Box<dyn Error + Send + Sync>> {
+        let allowed_columns = [
+            "id",
+            "username",
+            "email",
+            "role",
+            "is_active",
+            "created_at",
+            "updated_at",
+        ];
+        let order_by_clause = if allowed_columns.contains(&order_by) {
+            order_by
+        } else {
+            "id" // default to id
+        };
+
+        let mut query_builder: QueryBuilder<sqlx::Postgres> = QueryBuilder::new(
+            "SELECT id, username, email, password_hash, role, is_active, created_at, updated_at FROM users",
+        );
+
+        if let Some(name_word) = name {
+            query_builder.push(" WHERE username LIKE ");
+            query_builder.push_bind(format!("%{}%", name_word));
+        }
+
+        query_builder.push(format!(" ORDER BY {} ", order_by_clause));
+
+        query_builder.push(" LIMIT ");
+        query_builder.push_bind(limit as i64);
+
+        query_builder.push(" OFFSET ");
+        query_builder.push_bind(offset as i64);
+
+        let query = query_builder.build_query_as();
+        let recs = query.fetch_all(&self.pool).await?;
 
         Ok(recs)
+    }
+
+    async fn count_total(&self) -> Result<u64, Box<dyn Error + Send + Sync>> {
+        let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
+            .fetch_one(&self.pool)
+            .await?;
+
+        Ok(total as u64)
     }
 }
 
 #[async_trait]
 impl Create<User> for UserRepo {
-    async fn create(&self, entity: User) -> Result<User, Box<dyn Error>> {
+    async fn create(&self, entity: User) -> Result<User, Box<dyn Error + Send + Sync>> {
         let rec = sqlx::query_as!(
                     User,
                     r#"
@@ -71,7 +110,7 @@ impl Create<User> for UserRepo {
 
 #[async_trait]
 impl Update<User, Uuid> for UserRepo {
-    async fn update(&self, id: Uuid, entity: User) -> Result<User, Box<dyn Error>> {
+    async fn update(&self, id: Uuid, entity: User) -> Result<User, Box<dyn Error + Send + Sync>> {
         let rec = sqlx::query_as!(
             User,
             r#"
@@ -97,7 +136,11 @@ impl Update<User, Uuid> for UserRepo {
         Ok(rec)
     }
 
-    async fn update_is_active(&self, id: Uuid, is_active: bool) -> Result<User, Box<dyn Error>> {
+    async fn update_is_active(
+        &self,
+        id: Uuid,
+        is_active: bool,
+    ) -> Result<User, Box<dyn Error + Send + Sync>> {
         let rec = sqlx::query_as!(
             User,
             r#"
@@ -120,7 +163,7 @@ impl Update<User, Uuid> for UserRepo {
 
 #[async_trait]
 impl Delete<User, Uuid> for UserRepo {
-    async fn delete(&self, id: Uuid) -> Result<User, Box<dyn Error>> {
+    async fn delete(&self, id: Uuid) -> Result<User, Box<dyn Error + Send + Sync>> {
         let rec = sqlx::query_as!(
             User,
             r#"
