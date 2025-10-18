@@ -11,7 +11,7 @@ collection:
     meta:
       id: req_5f6a1c498b45409abe14c9766e14ddee
       created: 1759149000626
-      modified: 1759391110212
+      modified: 1760690851376
       isPrivate: false
       description: ""
       sortKey: -1759149000626
@@ -20,8 +20,8 @@ collection:
       mimeType: application/json
       text: >-
         {
-        		"username": "charlie_ken",
-            "email": "charlie_ken@gmail.com",
+        		"username": "foxtrot_tim",
+            "email": "foxtrot_tim@gmail.com",
             "role": "user",
             "password_hash": "$argon2id$v=19$m=19456,t=2,p=1$pRysFsewmFylusLgpSenFg$aOsoc/eUDwS9KQGlCECZCL0bUlqPd5ceW4bcedw6eiE"
         }
@@ -43,11 +43,32 @@ collection:
     meta:
       id: req_4ffd391537724b7c8ca17bd0bb4ef158
       created: 1759149072375
-      modified: 1759388827614
+      modified: 1760780921108
       isPrivate: false
       description: ""
       sortKey: -1759149072375
     method: GET
+    parameters:
+      - id: pair_9f654e7be77b486f9f2d806a11c15a8d
+        name: username
+        value: maria
+        description: ""
+        disabled: false
+      - id: pair_5d1c993a6c7c4f1facb79e49b72c0ac6
+        name: page
+        value: "1"
+        description: ""
+        disabled: false
+      - id: pair_3eec6854eaa441c58f04f2cb93e5088c
+        name: limit
+        value: "4"
+        description: ""
+        disabled: false
+      - id: pair_cada74a1f34441a0bb30548249809897
+        name: order_by
+        value: username
+        description: ""
+        disabled: false
     headers:
       - name: User-Agent
         value: insomnia/11.6.1
