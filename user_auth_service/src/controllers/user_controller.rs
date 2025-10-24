@@ -18,17 +18,17 @@ use crate::{
         pagination::Pagination,
         user::User,
     },
-    repos::{
-        repository_traits::{Create, Delete, Read, Update},
-        user_repo::UserRepo,
-    },
+    repos::repository_traits::Repository,
     traits::into_dto::IntoDto,
 };
 
 pub struct UserController;
 
 impl UserController {
-    pub async fn check_if_user_exists(user_repo: &UserRepo, id: Uuid) -> CustomResult<User> {
+    pub async fn check_if_user_exists(
+        user_repo: &Arc<dyn Repository<User, Uuid> + Send + Sync>,
+        id: Uuid,
+    ) -> CustomResult<User> {
         let existing_user = match user_repo.read(id).await {
             Ok(Some(user)) => user,
             Ok(None) => return Err(AppError::UserNotFound),
@@ -49,9 +49,7 @@ impl UserController {
         let username_option = if username == "" { None } else { Some(username) };
         let order_by = pagination.order_by.unwrap_or(String::from("id"));
 
-        let user_repo = UserRepo {
-            pool: app_state.db_pool.clone(),
-        };
+        let user_repo = &app_state.user_repo;
 
         let users = user_repo
             .read_all(username_option, limit, offset, &order_by)
@@ -82,11 +80,9 @@ impl UserController {
         State(app_state): State<Arc<AppState>>,
         Path(id): Path<Uuid>,
     ) -> CustomResult<Json<UserDto>> {
-        let user_repo = UserRepo {
-            pool: app_state.db_pool.clone(),
-        };
+        let user_repo = &app_state.user_repo;
 
-        let found_user = Self::check_if_user_exists(&user_repo, id).await;
+        let found_user = Self::check_if_user_exists(user_repo, id).await;
 
         match found_user {
             Ok(user) => {
@@ -101,9 +97,9 @@ impl UserController {
         State(app_state): State<Arc<AppState>>,
         Json(create_user_dto): Json<CreateUserDto>,
     ) -> CustomResult<Json<UserDto>> {
-        let user_repo = UserRepo {
-            pool: app_state.db_pool.clone(),
-        };
+        let user_repo = &app_state.user_repo;
+
+        // let found_user = Self::check_if_user_exists(user_repo, id).await;
 
         let new_user = User {
             id: Uuid::new_v4(),
@@ -132,11 +128,9 @@ impl UserController {
         Path(id): Path<Uuid>,
         Json(update_user_dto): Json<UpdateUserDto>,
     ) -> CustomResult<Json<UserDto>> {
-        let user_repo = UserRepo {
-            pool: app_state.db_pool.clone(),
-        };
+        let user_repo = &app_state.user_repo;
 
-        let found_user = Self::check_if_user_exists(&user_repo, id).await;
+        let found_user = Self::check_if_user_exists(user_repo, id).await;
 
         let existing_user = match found_user {
             Ok(user) => user,
@@ -169,11 +163,9 @@ impl UserController {
         State(app_state): State<Arc<AppState>>,
         Path(id): Path<Uuid>,
     ) -> CustomResult<Json<DeleteUserDto>> {
-        let user_repo = UserRepo {
-            pool: app_state.db_pool.clone(),
-        };
+        let user_repo = &app_state.user_repo;
 
-        let found_user = Self::check_if_user_exists(&user_repo, id).await;
+        let found_user = Self::check_if_user_exists(user_repo, id).await;
 
         let _existing_user = match found_user {
             Ok(user) => user,
@@ -196,11 +188,9 @@ impl UserController {
         Path(id): Path<Uuid>,
         Json(user_is_active_dto): Json<UserIsActiveDto>,
     ) -> CustomResult<Json<UserDto>> {
-        let user_repo = UserRepo {
-            pool: app_state.db_pool.clone(),
-        };
+        let user_repo = &app_state.user_repo;
 
-        let found_user = Self::check_if_user_exists(&user_repo, id).await;
+        let found_user = Self::check_if_user_exists(user_repo, id).await;
 
         let _existing_user = match found_user {
             Ok(user) => user,
