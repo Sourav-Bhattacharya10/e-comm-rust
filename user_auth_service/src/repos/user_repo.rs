@@ -3,12 +3,14 @@ use sqlx::{self, PgPool, QueryBuilder};
 use std::error::Error;
 use uuid::Uuid;
 
-use super::repository_traits::{Create, Delete, Read, Update};
+use super::repository_traits::{Create, Delete, Read, Repository, Update};
 use crate::models::user::User;
 
 pub struct UserRepo {
     pub pool: PgPool,
 }
+
+impl Repository<User, Uuid> for UserRepo {}
 
 #[async_trait]
 impl Read<User, Uuid> for UserRepo {

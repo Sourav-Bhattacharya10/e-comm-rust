@@ -28,6 +28,16 @@ use crate::{
 pub struct UserController;
 
 impl UserController {
+    pub async fn check_if_user_exists(user_repo: &UserRepo, id: Uuid) -> CustomResult<User> {
+        let existing_user = match user_repo.read(id).await {
+            Ok(Some(user)) => user,
+            Ok(None) => return Err(AppError::UserNotFound),
+            Err(_) => return Err(AppError::DatabaseConnectionFailure),
+        };
+
+        Ok(existing_user)
+    }
+
     pub async fn get_all_users(
         State(app_state): State<Arc<AppState>>,
         Query(pagination): Query<Pagination>,
@@ -64,7 +74,7 @@ impl UserController {
                     total: total_count,
                 }));
             }
-            Err(_) => Err(AppError::NO_USERS_FOUND),
+            Err(_) => Err(AppError::NoUsersFound),
         }
     }
 
@@ -76,15 +86,14 @@ impl UserController {
             pool: app_state.db_pool.clone(),
         };
 
-        let found_user = user_repo.read(id).await;
+        let found_user = Self::check_if_user_exists(&user_repo, id).await;
 
         match found_user {
-            Ok(Some(user)) => {
+            Ok(user) => {
                 let user_dto = user.into_dto();
                 Ok(Json(user_dto))
             }
-            Ok(None) => return Err(AppError::USER_NOT_FOUND),
-            Err(_) => return Err(AppError::DATABASE_CONNECTION_FAILURE),
+            Err(err) => return Err(err),
         }
     }
 
@@ -114,7 +123,7 @@ impl UserController {
                 let user_dto = user.into_dto();
                 Ok(Json(user_dto))
             }
-            Err(_) => Err(AppError::USER_COULD_NOT_BE_CREATED),
+            Err(_) => Err(AppError::UserCouldNotBeCreated),
         }
     }
 
@@ -127,10 +136,11 @@ impl UserController {
             pool: app_state.db_pool.clone(),
         };
 
-        let existing_user = match user_repo.read(id).await {
-            Ok(Some(user)) => user,
-            Ok(None) => return Err(AppError::USER_NOT_FOUND),
-            Err(_) => return Err(AppError::DATABASE_CONNECTION_FAILURE),
+        let found_user = Self::check_if_user_exists(&user_repo, id).await;
+
+        let existing_user = match found_user {
+            Ok(user) => user,
+            Err(err) => return Err(err),
         };
 
         let update_user = User {
@@ -151,7 +161,7 @@ impl UserController {
                 let user_dto = user.into_dto();
                 Ok(Json(user_dto))
             }
-            Err(_) => Err(AppError::USER_COULD_NOT_BE_UPDATED),
+            Err(_) => Err(AppError::UserCouldNotBeUpdated),
         }
     }
 
@@ -163,10 +173,11 @@ impl UserController {
             pool: app_state.db_pool.clone(),
         };
 
-        let _existing_user = match user_repo.read(id).await {
-            Ok(Some(user)) => user,
-            Ok(None) => return Err(AppError::USER_NOT_FOUND),
-            Err(_) => return Err(AppError::DATABASE_CONNECTION_FAILURE),
+        let found_user = Self::check_if_user_exists(&user_repo, id).await;
+
+        let _existing_user = match found_user {
+            Ok(user) => user,
+            Err(err) => return Err(err),
         };
 
         let deleted_user = user_repo.delete(id).await;
@@ -176,7 +187,7 @@ impl UserController {
                 let delete_user_dto = user.into_dto();
                 Ok(Json(delete_user_dto))
             }
-            Err(_) => Err(AppError::USER_COULD_NOT_BE_DELETED),
+            Err(_) => Err(AppError::UserCouldNotBeDeleted),
         }
     }
 
@@ -189,10 +200,11 @@ impl UserController {
             pool: app_state.db_pool.clone(),
         };
 
-        let _existing_user = match user_repo.read(id).await {
-            Ok(Some(user)) => user,
-            Ok(None) => return Err(AppError::USER_NOT_FOUND),
-            Err(_) => return Err(AppError::DATABASE_CONNECTION_FAILURE),
+        let found_user = Self::check_if_user_exists(&user_repo, id).await;
+
+        let _existing_user = match found_user {
+            Ok(user) => user,
+            Err(err) => return Err(err),
         };
 
         let updated_user_is_active = user_repo
@@ -204,7 +216,7 @@ impl UserController {
                 let updated_user_is_active_dto = user.into_dto();
                 Ok(Json(updated_user_is_active_dto))
             }
-            Err(_) => Err(AppError::USER_COULD_NOT_BE_UPDATED),
+            Err(_) => Err(AppError::UserCouldNotBeUpdated),
         }
     }
 }

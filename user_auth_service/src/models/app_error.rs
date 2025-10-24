@@ -10,30 +10,30 @@ use std::fmt::{self, Display, Formatter};
 #[derive(Debug, Default, Serialize)]
 pub enum AppError {
     #[default]
-    DATABASE_CONNECTION_FAILURE,
-    NO_USERS_FOUND,
-    USER_NOT_FOUND,
-    REQUEST_PAYLOAD_NOT_VALID,
-    USER_COULD_NOT_BE_CREATED,
-    USER_COULD_NOT_BE_UPDATED,
-    USER_COULD_NOT_BE_DELETED,
+    DatabaseConnectionFailure,
+    NoUsersFound,
+    UserNotFound,
+    _RequestPayloadNotValid,
+    UserCouldNotBeCreated,
+    UserCouldNotBeUpdated,
+    UserCouldNotBeDeleted,
 }
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (status_code, body) = match self {
-            AppError::USER_NOT_FOUND => (
+            AppError::UserNotFound => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 AppErrorResponse {
-                    code: AppError::USER_NOT_FOUND,
+                    code: AppError::UserNotFound,
                     cause: "User not found".to_string(),
                     ..Default::default()
                 },
             ),
-            AppError::NO_USERS_FOUND => (
+            AppError::NoUsersFound => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 AppErrorResponse {
-                    code: AppError::NO_USERS_FOUND,
+                    code: AppError::NoUsersFound,
                     cause: "No users found in database".to_string(),
                     ..Default::default()
                 },
@@ -41,7 +41,7 @@ impl IntoResponse for AppError {
             _ => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 AppErrorResponse {
-                    code: AppError::DATABASE_CONNECTION_FAILURE,
+                    code: AppError::DatabaseConnectionFailure,
                     cause: "Could not connect to database".to_string(),
                     ..Default::default()
                 },
