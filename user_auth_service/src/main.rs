@@ -13,7 +13,6 @@ use axum::{
     extract::{Query, State},
     routing::get,
 };
-// use serde::Deserialize;
 use sqlx::PgPool;
 use std::{collections::HashMap, sync::Arc};
 use tokio::net::TcpListener;
