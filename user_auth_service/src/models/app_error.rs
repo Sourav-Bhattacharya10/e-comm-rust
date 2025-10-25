@@ -13,7 +13,7 @@ pub enum AppError {
     DatabaseConnectionFailure,
     NoUsersFound,
     UserNotFound,
-    _RequestPayloadNotValid,
+    RequestPayloadNotValid(String),
     UserCouldNotBeCreated,
     UserCouldNotBeUpdated,
     UserCouldNotBeDeleted,
@@ -25,7 +25,7 @@ impl IntoResponse for AppError {
             AppError::UserNotFound => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 AppErrorResponse {
-                    code: AppError::UserNotFound,
+                    code: String::from("UserNotFound"),
                     cause: "User not found".to_string(),
                     ..Default::default()
                 },
@@ -33,15 +33,47 @@ impl IntoResponse for AppError {
             AppError::NoUsersFound => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 AppErrorResponse {
-                    code: AppError::NoUsersFound,
+                    code: String::from("NoUsersFound"),
                     cause: "No users found in database".to_string(),
+                    ..Default::default()
+                },
+            ),
+            AppError::UserCouldNotBeCreated => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                AppErrorResponse {
+                    code: String::from("UserCouldNotBeCreated"),
+                    cause: "User could not be created".to_string(),
+                    ..Default::default()
+                },
+            ),
+            AppError::UserCouldNotBeUpdated => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                AppErrorResponse {
+                    code: String::from("UserCouldNotBeUpdated"),
+                    cause: "User could not be updated".to_string(),
+                    ..Default::default()
+                },
+            ),
+            AppError::UserCouldNotBeDeleted => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                AppErrorResponse {
+                    code: String::from("UserCouldNotBeDeleted"),
+                    cause: "User could not be deleted".to_string(),
+                    ..Default::default()
+                },
+            ),
+            AppError::RequestPayloadNotValid(err_string) => (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                AppErrorResponse {
+                    code: String::from("RequestPayloadNotValidUnprocessableEntity"),
+                    cause: err_string,
                     ..Default::default()
                 },
             ),
             _ => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 AppErrorResponse {
-                    code: AppError::DatabaseConnectionFailure,
+                    code: String::from("DatabaseConnectionFailure"),
                     cause: "Could not connect to database".to_string(),
                     ..Default::default()
                 },
@@ -63,7 +95,7 @@ impl Error for AppError {}
 
 #[derive(Default, Serialize)]
 pub struct AppErrorResponse {
-    pub code: AppError,
+    pub code: String,
     pub cause: String,
     pub stacktrace: Option<String>,
 }

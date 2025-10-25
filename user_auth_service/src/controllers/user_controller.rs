@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::{
     dtos::{
-        create_user_dto::CreateUserDto, delete_user_dto::DeleteUserDto,
+        create_user_dto::CreateUserDto, deleted_user_dto::DeletedUserDto,
         update_user_dto::UpdateUserDto, user_dto::UserDto, user_is_active_dto::UserIsActiveDto,
     },
     models::{
@@ -17,6 +17,7 @@ use crate::{
         paginated_response::PaginatedResponse,
         pagination::Pagination,
         user::User,
+        validated_json::ValidatedJson,
     },
     repos::repository_traits::Repository,
     traits::into_dto::IntoDto,
@@ -31,7 +32,7 @@ impl UserController {
     ) -> CustomResult<User> {
         let existing_user = match user_repo.read(id).await {
             Ok(Some(user)) => user,
-            Ok(None) => return Err(AppError::UserNotFound),
+            Ok(_none) => return Err(AppError::UserNotFound),
             Err(_) => return Err(AppError::DatabaseConnectionFailure),
         };
 
@@ -95,11 +96,9 @@ impl UserController {
 
     pub async fn create_user(
         State(app_state): State<Arc<AppState>>,
-        Json(create_user_dto): Json<CreateUserDto>,
+        ValidatedJson(create_user_dto): ValidatedJson<CreateUserDto>,
     ) -> CustomResult<Json<UserDto>> {
         let user_repo = &app_state.user_repo;
-
-        // let found_user = Self::check_if_user_exists(user_repo, id).await;
 
         let new_user = User {
             id: Uuid::new_v4(),
@@ -126,7 +125,7 @@ impl UserController {
     pub async fn update_user(
         State(app_state): State<Arc<AppState>>,
         Path(id): Path<Uuid>,
-        Json(update_user_dto): Json<UpdateUserDto>,
+        ValidatedJson(update_user_dto): ValidatedJson<UpdateUserDto>,
     ) -> CustomResult<Json<UserDto>> {
         let user_repo = &app_state.user_repo;
 
@@ -162,7 +161,7 @@ impl UserController {
     pub async fn delete_user(
         State(app_state): State<Arc<AppState>>,
         Path(id): Path<Uuid>,
-    ) -> CustomResult<Json<DeleteUserDto>> {
+    ) -> CustomResult<Json<DeletedUserDto>> {
         let user_repo = &app_state.user_repo;
 
         let found_user = Self::check_if_user_exists(user_repo, id).await;
@@ -176,8 +175,8 @@ impl UserController {
 
         match deleted_user {
             Ok(user) => {
-                let delete_user_dto = user.into_dto();
-                Ok(Json(delete_user_dto))
+                let deleted_user_dto = user.into_dto();
+                Ok(Json(deleted_user_dto))
             }
             Err(_) => Err(AppError::UserCouldNotBeDeleted),
         }

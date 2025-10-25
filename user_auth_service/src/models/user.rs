@@ -4,7 +4,7 @@ use sqlx::FromRow;
 use uuid::Uuid;
 
 use crate::{
-    dtos::{delete_user_dto::DeleteUserDto, user_dto::UserDto},
+    dtos::{deleted_user_dto::DeletedUserDto, user_dto::UserDto},
     traits::into_dto::IntoDto,
 };
 
@@ -34,9 +34,9 @@ impl IntoDto<UserDto> for User {
     }
 }
 
-impl IntoDto<DeleteUserDto> for User {
-    fn into_dto(&self) -> DeleteUserDto {
-        DeleteUserDto {
+impl IntoDto<DeletedUserDto> for User {
+    fn into_dto(&self) -> DeletedUserDto {
+        DeletedUserDto {
             id: self.id,
             username: self.username.clone(),
             email: self.email.clone(),

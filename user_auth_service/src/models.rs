@@ -3,3 +3,4 @@ pub mod app_state;
 pub mod paginated_response;
 pub mod pagination;
 pub mod user;
+pub mod validated_json;
