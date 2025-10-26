@@ -28,20 +28,28 @@ use utility::password_hasher::hash_password;
 
 #[tokio::main]
 async fn main() {
-    let file_appender = tracing_appender::rolling::daily("logs", "app.log");
-    let (non_blocking_writer, _guard) = tracing_appender::non_blocking(file_appender);
+    let env_filter = tracing_subscriber::EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| "user_auth_service=debug,tower_http=debug".into());
 
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "user_auth_service=debug,tower_http=debug".into()),
-        )
-        .with(tracing_subscriber::fmt::layer().json().with_writer(non_blocking_writer))
-        .init();
+    let log_output = std::env::var("LOG_OUTPUT").unwrap_or_else(|_| "file".to_string());
 
-    tokio::spawn(async move {
-        let _ = _guard;
-    });
+    let _guard = if log_output.to_lowercase() == "console" {
+        tracing_subscriber::registry()
+            .with(env_filter)
+            .with(tracing_subscriber::fmt::layer().json())
+            .init();
+        None
+    } else {
+        let file_appender = tracing_appender::rolling::daily("logs", "app.log");
+        let (non_blocking_writer, guard) = tracing_appender::non_blocking(file_appender);
+
+        tracing_subscriber::registry()
+            .with(env_filter)
+            .with(tracing_subscriber::fmt::layer().json().with_writer(non_blocking_writer))
+            .init();
+        
+        Some(guard)
+    };
 
     let config = load_config().unwrap();
     let db_url = format!(

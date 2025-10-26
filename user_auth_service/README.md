@@ -52,3 +52,6 @@ $Env:DATABASE_URL="postgres://postgres:postgres@localhost:5432/postgres?options=
 
 APP_ENV=development cargo run -> Ubuntu
 $Env:APP_ENV="development"; cargo run -> Windows Powershell
+
+$Env:APP_ENV="development"; $Env:LOG_OUTPUT="console"; cargo run
+$Env:APP_ENV="development"; $Env:LOG_OUTPUT="file"; cargo run
