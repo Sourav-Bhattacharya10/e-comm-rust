@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use sqlx::{self, PgPool, QueryBuilder};
 use std::error::Error;
+use tracing::instrument;
 use uuid::Uuid;
 
 use super::repository_traits::{Create, Delete, Read, Repository, Update};
@@ -14,6 +15,7 @@ impl Repository<User, Uuid> for UserRepo {}
 
 #[async_trait]
 impl Read<User, Uuid> for UserRepo {
+    #[instrument(skip(self))]
     async fn read(&self, id: Uuid) -> Result<Option<User>, Box<dyn Error + Send + Sync>> {
         let rec = sqlx::query_as!(
             User,
@@ -30,6 +32,7 @@ impl Read<User, Uuid> for UserRepo {
         Ok(rec)
     }
 
+    #[instrument(skip(self))]
     async fn read_all(
         &self,
         name: Option<String>,
@@ -75,6 +78,7 @@ impl Read<User, Uuid> for UserRepo {
         Ok(recs)
     }
 
+    #[instrument(skip(self))]
     async fn count_total(&self) -> Result<u64, Box<dyn Error + Send + Sync>> {
         let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
             .fetch_one(&self.pool)
@@ -86,6 +90,7 @@ impl Read<User, Uuid> for UserRepo {
 
 #[async_trait]
 impl Create<User> for UserRepo {
+    #[instrument(skip(self, entity))]
     async fn create(&self, entity: User) -> Result<User, Box<dyn Error + Send + Sync>> {
         let rec = sqlx::query_as!(
                     User,
@@ -112,6 +117,7 @@ impl Create<User> for UserRepo {
 
 #[async_trait]
 impl Update<User, Uuid> for UserRepo {
+    #[instrument(skip(self, entity))]
     async fn update(&self, id: Uuid, entity: User) -> Result<User, Box<dyn Error + Send + Sync>> {
         let rec = sqlx::query_as!(
             User,
@@ -138,6 +144,7 @@ impl Update<User, Uuid> for UserRepo {
         Ok(rec)
     }
 
+    #[instrument(skip(self))]
     async fn update_is_active(
         &self,
         id: Uuid,
@@ -165,6 +172,7 @@ impl Update<User, Uuid> for UserRepo {
 
 #[async_trait]
 impl Delete<User, Uuid> for UserRepo {
+    #[instrument(skip(self))]
     async fn delete(&self, id: Uuid) -> Result<User, Box<dyn Error + Send + Sync>> {
         let rec = sqlx::query_as!(
             User,

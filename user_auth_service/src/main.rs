@@ -17,6 +17,9 @@ use sqlx::PgPool;
 use std::{collections::HashMap, sync::Arc};
 use tokio::net::TcpListener;
 
+use tower_http::trace::TraceLayer;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
 use config_utility::load_config::load_config;
 use seeds::user_seed::seeding_users_data;
 
@@ -25,7 +28,20 @@ use utility::password_hasher::hash_password;
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt::init();
+    let file_appender = tracing_appender::rolling::daily("logs", "app.log");
+    let (non_blocking_writer, _guard) = tracing_appender::non_blocking(file_appender);
+
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "user_auth_service=debug,tower_http=debug".into()),
+        )
+        .with(tracing_subscriber::fmt::layer().json().with_writer(non_blocking_writer))
+        .init();
+
+    tokio::spawn(async move {
+        let _ = _guard;
+    });
 
     let config = load_config().unwrap();
     let db_url = format!(
@@ -55,7 +71,8 @@ async fn main() {
         .route("/health", get(health_check))
         .route("/passwordhash", get(generate_password_hash))
         .nest("/users", user_routes())
-        .with_state(shared_state);
+        .with_state(shared_state)
+        .layer(TraceLayer::new_for_http());
 
     let listener = TcpListener::bind("0.0.0.0:8080").await.unwrap();
     tracing::info!("listening on {}", listener.local_addr().unwrap());

@@ -6,6 +6,8 @@ use axum::{
 };
 use uuid::Uuid;
 
+use tracing::instrument;
+
 use crate::{
     dtos::{
         create_user_dto::CreateUserDto, deleted_user_dto::DeletedUserDto,
@@ -26,6 +28,7 @@ use crate::{
 pub struct UserController;
 
 impl UserController {
+    #[instrument(skip(user_repo))]
     pub async fn check_if_user_exists(
         user_repo: &Arc<dyn Repository<User, Uuid> + Send + Sync>,
         id: Uuid,
@@ -39,6 +42,7 @@ impl UserController {
         Ok(existing_user)
     }
 
+    #[instrument(skip(app_state))]
     pub async fn get_all_users(
         State(app_state): State<Arc<AppState>>,
         Query(pagination): Query<Pagination>,
@@ -77,6 +81,7 @@ impl UserController {
         }
     }
 
+    #[instrument(skip(app_state))]
     pub async fn get_user_by_id(
         State(app_state): State<Arc<AppState>>,
         Path(id): Path<Uuid>,
@@ -94,6 +99,7 @@ impl UserController {
         }
     }
 
+    #[instrument(skip(app_state, create_user_dto))]
     pub async fn create_user(
         State(app_state): State<Arc<AppState>>,
         ValidatedJson(create_user_dto): ValidatedJson<CreateUserDto>,
@@ -122,6 +128,7 @@ impl UserController {
         }
     }
 
+    #[instrument(skip(app_state, update_user_dto))]
     pub async fn update_user(
         State(app_state): State<Arc<AppState>>,
         Path(id): Path<Uuid>,
@@ -158,6 +165,7 @@ impl UserController {
         }
     }
 
+    #[instrument(skip(app_state))]
     pub async fn delete_user(
         State(app_state): State<Arc<AppState>>,
         Path(id): Path<Uuid>,
@@ -182,6 +190,7 @@ impl UserController {
         }
     }
 
+    #[instrument(skip(app_state, user_is_active_dto))]
     pub async fn update_user_is_active(
         State(app_state): State<Arc<AppState>>,
         Path(id): Path<Uuid>,
