@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     dtos::{deleted_user_dto::DeletedUserDto, user_dto::UserDto},
-    traits::into_dto::IntoDto,
+    traits::to_dto::ToDto,
 };
 
 #[derive(Debug, Serialize, Deserialize, FromRow)]
@@ -20,8 +20,8 @@ pub struct User {
     pub updated_at: Option<DateTime<Utc>>,
 }
 
-impl IntoDto<UserDto> for User {
-    fn into_dto(&self) -> UserDto {
+impl ToDto<UserDto> for User {
+    fn to_dto(&self) -> UserDto {
         UserDto {
             id: self.id,
             username: self.username.clone(),
@@ -34,8 +34,8 @@ impl IntoDto<UserDto> for User {
     }
 }
 
-impl IntoDto<DeletedUserDto> for User {
-    fn into_dto(&self) -> DeletedUserDto {
+impl ToDto<DeletedUserDto> for User {
+    fn to_dto(&self) -> DeletedUserDto {
         DeletedUserDto {
             id: self.id,
             username: self.username.clone(),

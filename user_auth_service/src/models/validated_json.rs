@@ -3,7 +3,6 @@ use axum::{
     extract::{FromRequest, Request},
 };
 use serde::de::DeserializeOwned;
-use std::future::Future;
 use std::ops::Deref;
 use validator::Validate;
 
@@ -27,20 +26,18 @@ where
 {
     type Rejection = AppError;
 
-    fn from_request(
+    async fn from_request(
         req: Request,
         state: &S,
-    ) -> impl Future<Output = Result<Self, Self::Rejection>> + Send {
-        async move {
-            let Json(value) = Json::<T>::from_request(req, state)
-                .await
-                .map_err(|err| AppError::RequestPayloadNotValid(err.to_string()))?;
+    ) -> Result<Self, Self::Rejection> {
+        let Json(value) = Json::<T>::from_request(req, state)
+            .await
+            .map_err(|err| AppError::RequestPayloadNotValid(err.to_string()))?;
 
-            value
-                .validate()
-                .map_err(|err| AppError::RequestPayloadNotValid(err.to_string()))?;
+        value
+            .validate()
+            .map_err(|err| AppError::RequestPayloadNotValid(err.to_string()))?;
 
-            Ok(ValidatedJson(value))
-        }
+        Ok(ValidatedJson(value))
     }
 }

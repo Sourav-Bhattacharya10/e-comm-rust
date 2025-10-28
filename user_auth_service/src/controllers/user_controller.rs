@@ -22,7 +22,7 @@ use crate::{
         validated_json::ValidatedJson,
     },
     repos::repository_traits::Repository,
-    traits::into_dto::IntoDto,
+    traits::to_dto::ToDto,
 };
 
 pub struct UserController;
@@ -51,7 +51,7 @@ impl UserController {
         let limit = pagination.limit.unwrap_or(3);
         let offset = (page - 1) * limit;
         let username = pagination.username.unwrap_or(String::from(""));
-        let username_option = if username == "" { None } else { Some(username) };
+        let username_option = if username.is_empty() { None } else { Some(username) };
         let order_by = pagination.order_by.unwrap_or(String::from("id"));
 
         let user_repo = &app_state.user_repo;
@@ -62,18 +62,15 @@ impl UserController {
         match users {
             Ok(users) => {
                 let total_count_result = user_repo.count_total().await;
-                let total_count = match total_count_result {
-                    Ok(count) => count,
-                    Err(_) => 0,
-                };
+                let total_count: u64 = total_count_result.unwrap_or_default();
 
-                let users_dto = users.into_iter().map(|u| u.into_dto()).collect();
+                let users_dto = users.into_iter().map(|u| u.to_dto()).collect();
 
                 return Ok(Json(PaginatedResponse {
                     data: users_dto,
-                    limit: limit,
-                    page: page,
-                    order_by: order_by,
+                    limit,
+                    page,
+                    order_by,
                     total: total_count,
                 }));
             }
@@ -92,7 +89,7 @@ impl UserController {
 
         match found_user {
             Ok(user) => {
-                let user_dto = user.into_dto();
+                let user_dto = user.to_dto();
                 Ok(Json(user_dto))
             }
             Err(err) => return Err(err),
@@ -121,7 +118,7 @@ impl UserController {
 
         match created_user {
             Ok(user) => {
-                let user_dto = user.into_dto();
+                let user_dto = user.to_dto();
                 Ok(Json(user_dto))
             }
             Err(_) => Err(AppError::UserCouldNotBeCreated),
@@ -158,7 +155,7 @@ impl UserController {
 
         match updated_user {
             Ok(user) => {
-                let user_dto = user.into_dto();
+                let user_dto = user.to_dto();
                 Ok(Json(user_dto))
             }
             Err(_) => Err(AppError::UserCouldNotBeUpdated),
@@ -183,7 +180,7 @@ impl UserController {
 
         match deleted_user {
             Ok(user) => {
-                let deleted_user_dto = user.into_dto();
+                let deleted_user_dto = user.to_dto();
                 Ok(Json(deleted_user_dto))
             }
             Err(_) => Err(AppError::UserCouldNotBeDeleted),
@@ -211,7 +208,7 @@ impl UserController {
 
         match updated_user_is_active {
             Ok(user) => {
-                let updated_user_is_active_dto = user.into_dto();
+                let updated_user_is_active_dto = user.to_dto();
                 Ok(Json(updated_user_is_active_dto))
             }
             Err(_) => Err(AppError::UserCouldNotBeUpdated),

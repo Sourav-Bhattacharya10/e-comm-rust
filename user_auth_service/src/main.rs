@@ -57,7 +57,7 @@ async fn main() {
         config.server_user,
         config.server_password,
         config.server_host,
-        config.server_port.to_string(),
+        config.server_port,
         config.server_db_name,
         config.server_db_schema
     );
@@ -129,7 +129,7 @@ async fn generate_password_hash(
     State(_app_state): State<Arc<AppState>>,
     Query(params): Query<HashMap<String, String>>,
 ) -> String {
-    let password_hash = hash_password(&params.get("password").unwrap()).unwrap();
+    
 
-    password_hash
+    hash_password(params.get("password").unwrap()).unwrap()
 }
