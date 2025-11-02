@@ -1,0 +1,6 @@
+server_host = "localhost"
+server_port = 5432
+server_user = "postgres"
+server_password = "postgres"
+server_db_name = "postgres"
+server_db_schema = "sqlx"

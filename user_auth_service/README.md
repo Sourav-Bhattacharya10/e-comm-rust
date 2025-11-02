@@ -46,6 +46,7 @@ DATABASE_URL="postgres://postgres:postgres@localhost:5432/postgres?options=-csea
 
 $Env:DATABASE_URL="postgres://postgres:postgres@localhost:5432/postgres?options=-csearch_path=sqlx"; sqlx migrate run
 
+This command only works inside the directory where Cargo.toml file resides:
 DATABASE_URL="postgres://postgres:postgres@localhost:5432/postgres?options=-csearch_path=sqlx" cargo sqlx prepare
 
 $Env:DATABASE_URL="postgres://postgres:postgres@localhost:5432/postgres?options=-csearch_path=sqlx"; cargo sqlx prepare

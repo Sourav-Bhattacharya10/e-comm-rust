@@ -1,0 +1,187 @@
+type: collection.insomnia.rest/5.0
+name: product-catalog-service
+meta:
+  id: wrk_bf4561f90c0a482694474312cbf134f3
+  created: 1762097348108
+  modified: 1762097348108
+  description: ""
+collection:
+  - url: http://localhost:8081/products
+    name: create product
+    meta:
+      id: req_edf61987daba4d95bb336ba9b31c6fe7
+      created: 1759149000626
+      modified: 1762097942757
+      isPrivate: false
+      description: ""
+      sortKey: -1759149000626
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"name": "Webcam",
+        	"description": "A webcam",
+        	"price": "400",
+        	"image_url": "https://example.com/webcam.jpg"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8081/products
+    name: get all products
+    meta:
+      id: req_640042129eb246a6883ae2894b0eeb1b
+      created: 1759149072375
+      modified: 1762097409709
+      isPrivate: false
+      description: ""
+      sortKey: -1759149072375
+    method: GET
+    parameters:
+      - name: username
+        value: maria
+        disabled: true
+        id: pair_9f654e7be77b486f9f2d806a11c15a8d
+      - name: page
+        value: "2"
+        disabled: true
+        id: pair_5d1c993a6c7c4f1facb79e49b72c0ac6
+      - name: limit
+        value: "4"
+        disabled: true
+        id: pair_3eec6854eaa441c58f04f2cb93e5088c
+      - name: order_by
+        value: username
+        disabled: true
+        id: pair_cada74a1f34441a0bb30548249809897
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8081/health
+    name: health
+    meta:
+      id: req_7eb019739089473bb8b6eac41f3402ee
+      created: 1759388914034
+      modified: 1762097729961
+      isPrivate: false
+      description: ""
+      sortKey: -1759388914034
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8081/products/089163ef-bda3-47b8-89be-bdee656d6a7d
+    name: get product by id
+    meta:
+      id: req_faf69790a51441f48ad23b02aafdab92
+      created: 1759391421507
+      modified: 1762097504105
+      isPrivate: false
+      description: ""
+      sortKey: -1759391421507
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8081/products/dbc4bbe2-12f1-4126-be68-34906446d11c
+    name: update product
+    meta:
+      id: req_71ea788976024f848aded7ae28a0b8cd
+      created: 1760599842301
+      modified: 1762097891400
+      isPrivate: false
+      description: ""
+      sortKey: -1760599842301
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"id": "dbc4bbe2-12f1-4126-be68-34906446d11c",
+        	"name": "Charger",
+        	"description": "A powerful charger",
+        	"price": "100",
+        	"image_url": "https://example.com/charger.jpg"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8081/products/2212291c-6eae-441c-88ae-e89f75baa983
+    name: delete product
+    meta:
+      id: req_1d8bf2020f3946d18c8c3057dcb2385e
+      created: 1760609495973
+      modified: 1762097972800
+      isPrivate: false
+      description: ""
+      sortKey: -1760609495973
+    method: DELETE
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_afd05ea8114b449c9a0c233263d2e831
+    created: 1761283300620
+    modified: 1761283300620
+environments:
+  name: Base Environment
+  meta:
+    id: env_e25d742dbaf64d78ae401c2a8abe5941
+    created: 1759149000454
+    modified: 1761283300562
+    isPrivate: false
